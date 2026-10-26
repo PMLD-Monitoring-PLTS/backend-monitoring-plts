@@ -2,8 +2,7 @@ import generate
 import csv_writer
 from time import sleep
 
-SIMULATOR_INTERVAL = 30
-
+SIMULATOR_INTERVAL = 10
 SCENARIO = "NORMAL"
 
 print(

@@ -8,15 +8,9 @@ FILE_NAME = os.path.abspath(
 
 HEADERS = [
     "timestamp",
-    "load_voltage_panel",
-    "current_panel",
-    "power_panel",
-    "load_voltage_beban",
-    "current_beban",
-    "power_beban",
-    "load_voltage_baterai",
-    "current_baterai",
-    "power_baterai"
+    "panel_voltage", "panel_current", "panel_power",
+    "beban_voltage", "beban_current", "beban_power",
+    "baterai_voltage", "baterai_current", "baterai_power",
 ]
 
 def create_csv():
@@ -27,6 +21,13 @@ def create_csv():
             writer.writerow(HEADERS)
 
 def append_to_csv(telemetry):
+    m = telemetry["metrics"]
+    row = [
+        telemetry["timestamp"],
+        m["panel"]["voltage"],   m["panel"]["current"],   m["panel"]["power"],
+        m["beban"]["voltage"],   m["beban"]["current"],   m["beban"]["power"],
+        m["baterai"]["voltage"], m["baterai"]["current"], m["baterai"]["power"],
+    ]
     with open(FILE_NAME, mode="a", newline="") as csv_file:
         writer = csv.writer(csv_file)
-        writer.writerow([telemetry[header] for header in HEADERS])
+        writer.writerow(row)

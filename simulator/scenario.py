@@ -10,7 +10,7 @@ SCENARIOS = {
         },
         "baterai": {
             "voltage": (12.0, 14.5),
-            "current": (300.0, 1200.0)
+            "current": (-1200.0, -300.0)   # negatif = discharge (keluar dari baterai)
         }
     },
 
@@ -24,8 +24,8 @@ SCENARIOS = {
             "current": (100.0, 500.0)
         },
         "baterai": {
-            "voltage": (10.5, 11.9),
-            "current": (200.0, 800.0)
+            "voltage": (10.5, 11.9),       # di bawah ambang warning (12.0V)
+            "current": (-800.0, -200.0)
         }
     },
 
@@ -40,7 +40,7 @@ SCENARIOS = {
         },
         "baterai": {
             "voltage": (12.0, 14.5),
-            "current": (300.0, 1200.0)
+            "current": (-3500.0, -1500.0)  # discharge tinggi, lewati ambang critical (-3000)
         }
     },
 
@@ -55,7 +55,7 @@ SCENARIOS = {
         },
         "baterai": {
             "voltage": (12.0, 14.5),
-            "current": (300.0, 1200.0)
+            "current": (-1200.0, -300.0)
         }
     }
 }
