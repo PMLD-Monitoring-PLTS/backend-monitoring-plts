@@ -5,6 +5,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from pathlib import Path
 
+from sqlalchemy.orm import declarative_base
+
 # Lokasi folder backend/
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 
@@ -26,3 +28,5 @@ SessionLocal = sessionmaker(
     autoflush=False,
     autocommit=False,
 )
+
+Base = declarative_base()
