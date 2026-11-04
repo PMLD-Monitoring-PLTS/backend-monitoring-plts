@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_user
 from app.models.telemetry import Telemetry
+from app.models.users import User
 from app.schemas.telemetry import (
     ElectricalReading,
     HistoryData,
@@ -108,7 +110,10 @@ def ingest_telemetry(
     status_code=status.HTTP_200_OK,
     summary="Fetch Data Realtime",
 )
-def get_latest_telemetry(db: Session = Depends(get_db)):
+def get_latest_telemetry(
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
     """
     Mengambil 9 metrik sensor terkini untuk Web Dashboard.
     """
@@ -181,6 +186,7 @@ def get_telemetry_history(
         description="Batas maksimum jumlah titik data yang dikembalikan.",
     ),
     db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
 ):
     """
     Mengambil data historis untuk grafik tren panel/beban/baterai.
