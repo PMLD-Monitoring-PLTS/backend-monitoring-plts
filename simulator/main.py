@@ -8,7 +8,7 @@ import csv_writer
 # ========================================================
 # KONFIGURASI SIMULATOR (ESP8266 IoT Device)
 # ========================================================
-SIMULATOR_INTERVAL = 10  # Interval pengiriman dalam detik
+SIMULATOR_INTERVAL = 60  # Interval pengiriman dalam detik
 SCENARIO = "NORMAL"      # Pilihan: NORMAL, LOW_BATTERY, HIGH_LOAD, LOW_PANEL_OUTPUT
 
 # Target Ingestion API (sesuai API_Contract.yaml)

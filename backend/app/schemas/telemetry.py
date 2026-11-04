@@ -1,5 +1,12 @@
 from datetime import datetime
+from enum import Enum
 from pydantic import BaseModel, Field
+
+
+class SystemStatusEnum(str, Enum):
+    NORMAL = "normal"
+    WARNING = "warning"
+    CRITICAL = "critical"
 
 
 class ElectricalReading(BaseModel):
@@ -23,3 +30,18 @@ class TelemetryIngestRequest(BaseModel):
 class IngestResponse(BaseModel):
     status: str = "success"
     message: str = "Telemetry data successfully recorded."
+
+
+
+# Latest endpoint
+class RealtimeData(BaseModel):
+    panel: ElectricalReading
+    beban: ElectricalReading
+    baterai: ElectricalReading
+    system_status: SystemStatusEnum
+    last_updated: datetime
+
+
+class RealtimeResponse(BaseModel):
+    status: str = "success"
+    data: RealtimeData
