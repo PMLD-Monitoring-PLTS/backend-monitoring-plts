@@ -1,11 +1,9 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from pathlib import Path
-
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Lokasi folder backend/
 BACKEND_DIR = Path(__file__).resolve().parents[2]
@@ -30,3 +28,12 @@ SessionLocal = sessionmaker(
 )
 
 Base = declarative_base()
+
+
+def get_db():
+    """Generator session database untuk Dependency Injection FastAPI."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
