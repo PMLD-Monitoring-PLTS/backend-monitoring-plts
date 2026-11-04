@@ -45,3 +45,24 @@ class RealtimeData(BaseModel):
 class RealtimeResponse(BaseModel):
     status: str = "success"
     data: RealtimeData
+
+
+class HistoryPoint(BaseModel):
+    timestamp: datetime
+    panel: ElectricalReading
+    beban: ElectricalReading
+    baterai: ElectricalReading
+
+
+class HistoryData(BaseModel):
+    interval: str
+    from_: datetime = Field(..., alias="from")
+    to: datetime
+    points: list[HistoryPoint]
+
+    model_config = {"populate_by_name": True}
+
+
+class HistoryResponse(BaseModel):
+    status: str = "success"
+    data: HistoryData

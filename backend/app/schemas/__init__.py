@@ -1,5 +1,8 @@
 from app.schemas.telemetry import (
     ElectricalReading,
+    HistoryData,
+    HistoryPoint,
+    HistoryResponse,
     IngestResponse,
     RealtimeData,
     RealtimeResponse,
@@ -16,4 +19,7 @@ __all__ = [
     "RealtimeData",
     "RealtimeResponse",
     "SystemStatusEnum",
+    "HistoryPoint",
+    "HistoryData",
+    "HistoryResponse",
 ]
