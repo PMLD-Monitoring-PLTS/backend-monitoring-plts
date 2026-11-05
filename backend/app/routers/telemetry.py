@@ -28,6 +28,19 @@ router = APIRouter(
 
 EXPECTED_DEVICE_KEY = os.getenv("DEVICE_API_KEY", "ESP8266_PLTS_SECRET_KEY")
 
+# Zona waktu Indonesia Barat (WIB / UTC+7)
+WIB = timezone(timedelta(hours=7))
+
+
+def to_wib(dt: datetime) -> datetime:
+    """Mengonversi objek datetime apapun ke zona waktu WIB (UTC+7)."""
+    if dt is None:
+        return dt
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=WIB)
+    return dt.astimezone(WIB)
+
+
 # Pemetaan nilai interval dari query param ke interval SQL
 INTERVAL_MAP = {
     "5m":  "5 minutes",
@@ -153,7 +166,7 @@ def get_latest_telemetry(
                 power=record.power_baterai,
             ),
             system_status=system_status,
-            last_updated=record.timestamp,
+            last_updated=to_wib(record.timestamp),
         ),
     )
 
@@ -190,23 +203,22 @@ def get_telemetry_history(
 ):
     """
     Mengambil data historis untuk grafik tren panel/beban/baterai.
-    - interval=raw        : Data mentah per row.
+    - interval=raw          : Data mentah per row.
     - interval=5m/10m/1h/1d : Rata-rata (AVG) per bucket waktu.
     """
-    # Resolve default nilai to dan from
-    now = datetime.now(timezone.utc)
+    # Waktu sekarang dalam zona WIB
+    now = datetime.now(WIB)
 
     resolved_to: datetime = to if isinstance(to, datetime) else now
     if resolved_to.tzinfo is None:
-        resolved_to = resolved_to.replace(tzinfo=timezone.utc)
+        resolved_to = resolved_to.replace(tzinfo=WIB)
 
     resolved_from: datetime = (
         from_ if isinstance(from_, datetime) else resolved_to - timedelta(hours=24)
     )
     if resolved_from.tzinfo is None:
-        resolved_from = resolved_from.replace(tzinfo=timezone.utc)
+        resolved_from = resolved_from.replace(tzinfo=WIB)
 
-    # Resolve default interval dan limit saat dipanggil di luar HTTP context
     resolved_interval: str = interval if isinstance(interval, str) else "10m"
     resolved_limit: int = limit if isinstance(limit, int) else 200
 
@@ -226,7 +238,7 @@ def get_telemetry_history(
         )
         points = [
             HistoryPoint(
-                timestamp=row.timestamp,
+                timestamp=to_wib(row.timestamp),
                 panel=ElectricalReading(
                     voltage=row.load_voltage_panel,
                     current=row.current_panel,
@@ -281,7 +293,7 @@ def get_telemetry_history(
 
         points = [
             HistoryPoint(
-                timestamp=row.bucket,
+                timestamp=to_wib(row.bucket),
                 panel=ElectricalReading(
                     voltage=round(row.voltage_panel, 2),
                     current=round(row.current_panel, 2),
@@ -304,8 +316,8 @@ def get_telemetry_history(
     return HistoryResponse(
         status="success",
         data=HistoryData(**{
-            "from": resolved_from,
-            "to": resolved_to,
+            "from": to_wib(resolved_from),
+            "to": to_wib(resolved_to),
             "interval": resolved_interval,
             "points": points,
         }),

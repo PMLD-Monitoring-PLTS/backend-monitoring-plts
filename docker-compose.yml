@@ -67,11 +67,13 @@ services:
       DEVICE_API_KEY: ${DEVICE_API_KEY:-ESP8266_PLTS_SECRET_KEY}
       INTERVAL_SECONDS: ${INTERVAL_SECONDS:-60}
       SCENARIO: ${SCENARIO:-NORMAL}
+      CSV_PATH: /app/data/plts_telemetry.csv
     depends_on:
       backend:
         condition: service_healthy
     volumes:
-      - ./simulator/data:/app/data
+      # CSV disimpan ke folder data/ di root host Windows
+      - ./data:/app/data
     networks:
       - plts_net
 

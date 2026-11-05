@@ -1,8 +1,11 @@
 import random
 from scenario import get_scenario
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 DEVICE_ID = "ESP8266_PLTS_01"
+
+# Zona waktu Indonesia Barat (WIB / UTC+7)
+WIB = timezone(timedelta(hours=7))
 
 def generate_value(value_range):
     minimum, maximum = value_range
@@ -26,8 +29,10 @@ def generate_telemetry(scenario):
     voltage_baterai = generate_value(config["baterai"]["voltage"])
     current_baterai = generate_value(config["baterai"]["current"])
     power_baterai   = round(voltage_baterai * current_baterai / 1000, 2)
-    # TIMESTAMP — ISO 8601 UTC
-    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # TIMESTAMP — ISO 8601 WIB (UTC+7)
+    # Contoh output: 2026-11-05T18:05:00+07:00
+    timestamp = datetime.now(WIB).strftime("%Y-%m-%dT%H:%M:%S+07:00")
 
     # Payload sesuai IngestRequest di API contract
     return {
