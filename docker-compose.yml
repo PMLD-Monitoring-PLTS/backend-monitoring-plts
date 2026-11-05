@@ -1,0 +1,83 @@
+services:
+  # ============================================================
+  # PostgreSQL Database (Lokal Container)
+  # (Hanya aktif jika tidak menggunakan database cloud luar)
+  # ============================================================
+  db:
+    image: postgres:17-alpine
+    container_name: plts_db
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-plts_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-plts_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - plts_net
+
+  # ============================================================
+  # Backend FastAPI
+  # Menggunakan DATABASE_URL dari .env (bisa Neon cloud atau container lokal)
+  # ============================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: plts_backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-plts_db}}
+      DEVICE_API_KEY: ${DEVICE_API_KEY:-ESP8266_PLTS_SECRET_KEY}
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-admin@plts.com}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-Admin@PLTS2026!}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-plts_jwt_secret_key_super_secure_2026_antigravity}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-480}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health/db || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - plts_net
+
+  # ============================================================
+  # Simulator ESP8266
+  # Menunggu backend sehat sebelum mulai kirim data
+  # ============================================================
+  simulator:
+    build:
+      context: ./simulator
+      dockerfile: Dockerfile
+    container_name: plts_simulator
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:3000
+      DEVICE_API_KEY: ${DEVICE_API_KEY:-ESP8266_PLTS_SECRET_KEY}
+      INTERVAL_SECONDS: ${INTERVAL_SECONDS:-60}
+      SCENARIO: ${SCENARIO:-NORMAL}
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - ./simulator/data:/app/data
+    networks:
+      - plts_net
+
+volumes:
+  postgres_data:
+
+networks:
+  plts_net:
+    driver: bridge

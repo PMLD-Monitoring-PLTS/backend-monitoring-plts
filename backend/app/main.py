@@ -10,7 +10,8 @@ from fastapi import FastAPI, HTTPException
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.core.database import SessionLocal, engine
+import app.models  # Import semua model agar terdaftar di Base
+from app.core.database import Base, SessionLocal, engine
 from app.core.seeder import seed_superadmin
 from app.routers.auth import router as auth_router
 from app.routers.telemetry import router as telemetry_router
@@ -18,7 +19,11 @@ from app.routers.telemetry import router as telemetry_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Auto-seed superadmin saat server pertama kali start."""
+    """
+    1. Membuat tabel di database jika belum ada (penting untuk container baru).
+    2. Auto-seed superadmin saat server pertama kali start.
+    """
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
         seed_superadmin(db)

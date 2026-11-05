@@ -1,0 +1,38 @@
+# ============================================================
+# Docker Ignore - Simulator Service
+# ============================================================
+
+# Secret & env files
+.env
+.env.*
+
+# Local data & CSV fallback (di-mount via volume, jangan dibake ke image)
+data/
+*.csv
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Git & IDE configs
+.git
+.gitignore
+.dockerignore
+.vscode/
+.idea/
+
+# Dockerfile
+Dockerfile*
+docker-compose*
+
+# Documentation
+README.md
+*.md

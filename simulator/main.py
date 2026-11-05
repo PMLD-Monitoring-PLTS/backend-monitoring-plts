@@ -1,3 +1,4 @@
+import os
 import json
 import urllib.request
 import urllib.error
@@ -7,13 +8,18 @@ import csv_writer
 
 # ========================================================
 # KONFIGURASI SIMULATOR (ESP8266 IoT Device)
+# Nilai default untuk lokal, bisa di-override via env var
+# (otomatis dipakai saat dijalankan via Docker Compose)
 # ========================================================
-SIMULATOR_INTERVAL = 60  # Interval pengiriman dalam detik
-SCENARIO = "NORMAL"      # Pilihan: NORMAL, LOW_BATTERY, HIGH_LOAD, LOW_PANEL_OUTPUT
+SCENARIO = os.getenv("SCENARIO", "NORMAL")  # Pilihan: NORMAL, LOW_BATTERY, HIGH_LOAD, LOW_PANEL_OUTPUT
+SIMULATOR_INTERVAL = int(os.getenv("INTERVAL_SECONDS", "60"))  # Interval pengiriman dalam detik
 
 # Target Ingestion API (sesuai API_Contract.yaml)
-API_URL = "http://localhost:3000/api/v1/telemetry/ingest"
-DEVICE_API_KEY = "ESP8266_PLTS_SECRET_KEY"
+# Saat Docker: BACKEND_URL=http://backend:3000 (nama service di docker-compose)
+# Saat lokal : BACKEND_URL=http://localhost:3000 (default)
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:3000")
+API_URL = f"{BACKEND_URL}/api/v1/telemetry/ingest"
+DEVICE_API_KEY = os.getenv("DEVICE_API_KEY", "ESP8266_PLTS_SECRET_KEY")
 
 
 def send_telemetry_http(url: str, api_key: str, payload: dict):
@@ -51,10 +57,10 @@ def send_telemetry_http(url: str, api_key: str, payload: dict):
 
 def main():
     print("=" * 65)
-    print("🚀 SIMULATOR ESP8266 PLTS - HTTP INGESTION CLIENT")
-    print(f"• Target Endpoint : {API_URL}")
-    print(f"• Skenario        : {SCENARIO}")
-    print(f"• Interval Kirim  : {SIMULATOR_INTERVAL} detik")
+    print("SIMULATOR ESP8266 PLTS - HTTP INGESTION CLIENT")
+    print(f"- Target Endpoint : {API_URL}")
+    print(f"- Skenario        : {SCENARIO}")
+    print(f"- Interval Kirim  : {SIMULATOR_INTERVAL} detik")
     print("=" * 65)
 
     csv_writer.create_csv()
@@ -73,12 +79,12 @@ def main():
 
         # 4. Tampilkan status ke console (seperti Serial Monitor pada ESP)
         if status_code == 200:
-            print(f"[{timestamp}] [{device_id}] ✅ HTTP 200 OK -> Data berhasil dicatat server.")
+            print(f"[{timestamp}] [{device_id}] HTTP 200 OK -> Data berhasil dicatat server.")
         elif status_code in (400, 401, 403, 500):
-            print(f"[{timestamp}] [{device_id}] ⚠️ HTTP {status_code} Error: {response_text}")
+            print(f"[{timestamp}] [{device_id}] HTTP {status_code} Error: {response_text}")
         else:
-            print(f"[{timestamp}] [{device_id}] ❌ Koneksi Gagal: Server belum aktif ({response_text})")
-            print("   ↳ Data tetap berhasil dicatat ke data/plts_telemetry.csv")
+            print(f"[{timestamp}] [{device_id}] Koneksi Gagal: Server belum aktif ({response_text})")
+            print("   Data tetap berhasil dicatat ke data/plts_telemetry.csv")
 
         sleep(SIMULATOR_INTERVAL)
 
@@ -87,4 +93,4 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n🛑 Simulator dihentikan oleh pengguna.")
+        print("\nSimulator dihentikan oleh pengguna.")

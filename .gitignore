@@ -1,9 +1,59 @@
-data/plts_telemetry.csv
+# ============================================================
+# Git Ignore - PLTS Monitoring System
+# ============================================================
+
+# Environment variables & secrets (JANGAN PERNAH PUSH KE REPO)
+.env
+.env.*
+!.env.example
+
+# Virtual Environments
 venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python bytecode & cache
 __pycache__/
 *.py[cod]
 *$py.class
-.env
-env/
+*.so
+.Python
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Build & packaging
+dist/
+build/
+*.egg-info/
+
+# Local database / SQLite (jika ada testing db lokal)
+*.db
+*.sqlite3
+
+# Simulator data output & CSV fallbacks
+data/
+simulator/data/
+*.csv
+
+# IDE & Editor files
 .vscode/
 .idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# OS temporary files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker local overrides
+docker-compose.override.yml

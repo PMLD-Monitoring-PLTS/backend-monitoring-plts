@@ -1,0 +1,47 @@
+# ============================================================
+# Root Docker Ignore
+# ============================================================
+
+# Secret & Environment files
+.env
+.env.*
+!.env.example
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Tests & caches
+tests/
+backend/tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local data & logs
+data/
+simulator/data/
+*.csv
+*.log
+
+# Git & CI/CD
+.git
+.github/
+.gitignore
+.dockerignore
+
+# IDE & Editor configs
+.vscode/
+.idea/
+
+# Documentation
+README.md
+*.md
