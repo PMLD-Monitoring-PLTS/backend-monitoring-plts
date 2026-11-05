@@ -37,12 +37,13 @@ jobs:
 
     env:
       DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/plts_test_db
-      DEVICE_API_KEY: test-api-key
+      DEVICE_API_KEY: ESP8266_PLTS_SECRET_KEY
       SUPERADMIN_EMAIL: admin@plts.com
       SUPERADMIN_PASSWORD: Admin@PLTS2026!
       JWT_SECRET_KEY: test-secret-key-for-ci
       JWT_ALGORITHM: HS256
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      PYTHONPATH: .
 
     steps:
       - name: Checkout kode
