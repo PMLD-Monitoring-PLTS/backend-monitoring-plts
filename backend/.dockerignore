@@ -1,0 +1,41 @@
+# ============================================================
+# Docker Ignore - Backend Service
+# ============================================================
+
+# Secret & Environment files (disuplai via docker-compose / orchestrator)
+.env
+.env.*
+!.env.example
+
+# Virtual environments (Docker membuat venv Linux sendiri di container)
+venv/
+.venv/
+env/
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Test files & test cache (tidak perlu ikut ke production image)
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Git & IDE configs
+.git
+.gitignore
+.dockerignore
+.vscode/
+.idea/
+
+# Dockerfile & CI
+Dockerfile*
+docker-compose*
+
+# Documentation
+README.md
+*.md

@@ -18,6 +18,7 @@ if not DATABASE_URL:
 
 engine = create_engine(
     DATABASE_URL,
+    connect_args={"options": "-c timezone=Asia/Jakarta"},
     pool_pre_ping=True,
 )
 
