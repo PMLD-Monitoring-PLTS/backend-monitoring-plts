@@ -7,7 +7,7 @@ services:
     container_name: plts_db
     restart: unless-stopped
     ports:
-      - "5433:5432"
+      - "${DB_HOST_PORT:-5433}:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-plts_db}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
