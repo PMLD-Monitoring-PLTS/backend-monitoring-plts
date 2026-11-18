@@ -1,10 +1,9 @@
 services:
   # ============================================================
-  # PostgreSQL Database (Lokal Container)
-  # (Hanya aktif jika tidak menggunakan database cloud luar)
+  # TimescaleDB (Lokal Container)
   # ============================================================
   db:
-    image: postgres:17-alpine
+    image: timescale/timescaledb:latest-pg17
     container_name: plts_db
     restart: unless-stopped
     ports:
@@ -25,7 +24,6 @@ services:
 
   # ============================================================
   # Backend FastAPI
-  # Menggunakan DATABASE_URL dari .env (bisa Neon cloud atau container lokal)
   # ============================================================
   backend:
     build:
@@ -43,6 +41,9 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-plts_jwt_secret_key_super_secure_2026_antigravity}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-480}
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/health/db || exit 1"]
       interval: 5s

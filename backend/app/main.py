@@ -20,10 +20,22 @@ from app.routers.telemetry import router as telemetry_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    1. Membuat tabel di database jika belum ada (penting untuk container baru).
-    2. Auto-seed superadmin saat server pertama kali start.
+    1. Buat tabel schema standar SQLAlchemy.
+    2. Aktifkan ekstensi TimescaleDB & ubah tabel telemetry menjadi Hypertable.
+    3. Auto-seed superadmin saat server pertama kali start.
     """
+    # 1. Buat tabel schema standar SQLAlchemy
     Base.metadata.create_all(bind=engine)
+
+    # 2. Aktifkan ekstensi TimescaleDB & ubah tabel telemetry menjadi Hypertable
+    try:
+        with engine.begin() as conn:
+            conn.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;"))
+            conn.execute(text("SELECT create_hypertable('telemetry', 'timestamp', if_not_exists => TRUE);"))
+    except Exception as e:
+        print(f"[TimescaleDB] Info/Warning: {e}")
+
+    # 3. Auto-seed superadmin
     db = SessionLocal()
     try:
         seed_superadmin(db)
