@@ -191,6 +191,7 @@ Setelah backend aktif, dokumentasi interaktif OpenAPI dapat diakses langsung mel
 | `POST` | `/api/v1/telemetry/ingest` | `X-Device-API-Key` | Endpoint penerimaan data telemetri dari mikrokontroler ESP8266 / Simulator. |
 | `GET` | `/api/v1/telemetry/latest` | JWT Bearer | Mengambil pembacaan 9 metrik sensor terakhir dan status sistem (*normal/warning/critical*). |
 | `GET` | `/api/v1/telemetry/history` | JWT Bearer | Mengambil riwayat data historis/grafik tren dengan interval agregasi (`raw`, `5m`, `10m`, `1h`, `1d`). |
+| `GET` | `/api/v1/telemetry/export/csv` | JWT Bearer | Mengunduh riwayat telemetri dalam format CSV dengan filter waktu opsional (default 7 hari terakhir). |
 | `GET` | `/health/db` | Publik | Health-check konektivitas engine database. |
 
 ---
