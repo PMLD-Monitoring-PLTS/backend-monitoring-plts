@@ -1,7 +1,10 @@
 import os
+import csv
+import io
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -321,4 +324,101 @@ def get_telemetry_history(
             "interval": resolved_interval,
             "points": points,
         }),
+    )
+
+
+@router.get(
+    "/export/csv",
+    summary="Download riwayat data telemetri dalam format CSV",
+    response_class=StreamingResponse,
+)
+def export_telemetry_csv(
+    from_: datetime | None = Query(
+        default=None,
+        alias="from",
+        description="Batas awal rentang waktu. Default 7 hari sebelum `to`.",
+    ),
+    to: datetime | None = Query(
+        default=None,
+        description="Batas akhir rentang waktu. Default saat ini (WIB).",
+    ),
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """
+    Mengekspor data telemetri dari database ke file CSV.
+    Dilindungi token JWT. Default rentang waktu: 7 hari terakhir.
+    """
+    now = datetime.now(WIB)
+    resolved_to: datetime = to if isinstance(to, datetime) else now
+    if resolved_to.tzinfo is None:
+        resolved_to = resolved_to.replace(tzinfo=WIB)
+
+    resolved_from = from_ if isinstance(from_, datetime) else resolved_to - timedelta(days=7)
+    if resolved_from.tzinfo is None:
+        resolved_from = resolved_from.replace(tzinfo=WIB)
+
+    if resolved_from >= resolved_to:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Parameter `from` harus lebih awal dari `to`.",
+        )
+
+    records = (
+        db.query(Telemetry)
+        .filter(Telemetry.timestamp >= resolved_from, Telemetry.timestamp <= resolved_to)
+        .order_by(Telemetry.timestamp.asc())
+        .all()
+    )
+
+    def iter_csv():
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        # Header kolom lengkap 11 metrik
+        writer.writerow([
+            "timestamp",
+            "device_id",
+            "load_voltage_panel",
+            "current_panel",
+            "power_panel",
+            "load_voltage_beban",
+            "current_beban",
+            "power_beban",
+            "load_voltage_baterai",
+            "current_baterai",
+            "power_baterai",
+        ])
+
+        yield output.getvalue()
+        output.seek(0)
+        output.truncate(0)
+
+        for row in records:
+            writer.writerow([
+                to_wib(row.timestamp).isoformat(),
+                row.device_id,
+                row.load_voltage_panel,
+                row.current_panel,
+                row.power_panel,
+                row.load_voltage_beban,
+                row.current_beban,
+                row.power_beban,
+                row.load_voltage_baterai,
+                row.current_baterai,
+                row.power_baterai,
+            ])
+            yield output.getvalue()
+            output.seek(0)
+            output.truncate(0)
+
+    filename = f"telemetry_{resolved_to.strftime('%Y%m%d_%H%M%S')}.csv"
+
+    return StreamingResponse(
+        iter_csv(),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}",
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        },
     )

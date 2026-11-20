@@ -93,3 +93,57 @@ def test_get_history_authorized(client, auth_headers):
     assert "points" in data["data"]
     assert "from" in data["data"]
     assert "to" in data["data"]
+
+
+def test_export_csv_unauthorized(client):
+    """Test endpoint /export/csv ditolak tanpa JWT token."""
+    resp = client.get("/api/v1/telemetry/export/csv")
+    assert resp.status_code in (401, 403)
+
+
+def test_export_csv_success(client, auth_headers, device_headers):
+    """Test export CSV berhasil dan formatnya valid."""
+    # Pastikan ada data di database terlebih dahulu
+    client.post(
+        "/api/v1/telemetry/ingest",
+        headers=device_headers,
+        json=SAMPLE_TELEMETRY,
+    )
+
+    response = client.get("/api/v1/telemetry/export/csv", headers=auth_headers)
+
+    # 1. Pastikan status berhasil
+    assert response.status_code == 200
+
+    # 2. Pastikan tipe konten adalah text/csv
+    assert "text/csv" in response.headers["content-type"]
+
+    # 3. Pastikan header Content-Disposition ada attachment dan nama file .csv
+    assert "attachment" in response.headers["content-disposition"]
+    assert ".csv" in response.headers["content-disposition"]
+
+    # 4. Baca baris pertama dari CSV dan pastikan header kolomnya benar
+    first_line = response.text.splitlines()[0]
+    assert first_line == (
+        "timestamp,device_id,"
+        "load_voltage_panel,current_panel,power_panel,"
+        "load_voltage_beban,current_beban,power_beban,"
+        "load_voltage_baterai,current_baterai,power_baterai"
+    )
+
+
+def test_export_csv_with_date_filter(client, auth_headers):
+    """Test download CSV dengan filter from dan to berjalan dengan baik."""
+    now = datetime.now(WIB)
+
+    from_str = (now - timedelta(days=3)).strftime("%Y-%m-%dT%H:%M:%S+07:00")
+    to_str = now.strftime("%Y-%m-%dT%H:%M:%S+07:00")
+
+    resp = client.get(
+        "/api/v1/telemetry/export/csv",
+        params={"from": from_str, "to": to_str},
+        headers=auth_headers,
+    )
+
+    assert resp.status_code == 200
+    assert "text/csv" in resp.headers["content-type"]
